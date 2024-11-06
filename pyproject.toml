@@ -1,0 +1,40 @@
+[project]
+name = "harp-logfmt-python"
+version = "1.0.0"
+description = "Logfmt formatter for python logging"
+dependencies = []
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project.urls]
+Homepage = "https://github.com/HARP-research-Inc/logfmt-python"
+Issues = "https://github.com/HARP-research-Inc/logfmt-python/issues"
+
+[[project.authors]]
+name = "HARP Research"
+email = "dev@harpresearch.ai"
+
+[project.optional-dependencies]
+lint = ["ruff==0.6.9"]
+test = ["pytest"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.format]
+quote-style = "double"
+docstring-code-format = true
+
+[tool.ruff.lint.isort]
+case-sensitive = false
+combine-as-imports = true
