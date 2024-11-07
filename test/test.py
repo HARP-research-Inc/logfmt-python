@@ -1,8 +1,8 @@
-from src import LogfmtFormatter, CUSTOM_FORMATTER_PREDICATE, CUSTOM_FORMATTER_FUNC, CUSTOM_FORMATTER_FUNC_RETURN
+from harp_logfmt import LogfmtFormatter, CUSTOM_FORMATTER_FUNC_RETURN
 from unittest import TestCase
 from dataclasses import dataclass
 from typing import NamedTuple
-from src.ansicolors import ANSIColors
+from harp_logfmt.ansicolors import ANSIColors
 from uuid import uuid4
 import logging
 import io
@@ -115,7 +115,7 @@ class TestSimple(TestCase):
         self.assertIn("message[a][b]=1", value)
         self.assertIn("function=test_nested_two_layers", value)
         self.assertIn("name=nested_two_layers", value)
-    
+
     def test_nested_mixed_two_layers(self):
         logger, stream = setup_logger(LogfmtFormatter(colorize=False), name="nested_mixed_two_layers")
         logger.debug({"a": [1, 2, 3]})
@@ -140,7 +140,7 @@ class TestSimple(TestCase):
         self.assertIn("message[1].c=6", value)
         self.assertIn("function=test_nested_mixed_dataclass_list_two_layers", value)
         self.assertIn("name=nested_mixed_dataclass_list_two_layers", value)
-    
+
     def test_nested_three_layers(self):
         logger, stream = setup_logger(LogfmtFormatter(colorize=False), name="nested_three_layers")
         logger.debug({"a": {"b": {"c": 1}}})
@@ -197,7 +197,7 @@ class TestSimple(TestCase):
         @formatter.custom_formatter(float)
         def float_formatter(value: float) -> CUSTOM_FORMATTER_FUNC_RETURN:
             return {"integer": int(value), "fraction": str(value % 1)}, False
-        
+
         logger.debug([42, 42.5, complex(42, 0.5)])
         value = stream.getvalue()
         self.assertIn("level=DEBUG", value)

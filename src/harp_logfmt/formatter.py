@@ -9,7 +9,10 @@ from .value_formatters import default_formatters
 CUSTOM_FORMATTER_PREDICATE_FUNC = Callable[[Any], bool]
 CUSTOM_FORMATTER_PREDICATE = type | CUSTOM_FORMATTER_PREDICATE_FUNC
 CUSTOM_FORMATTER_FUNC_RETURN = tuple[dict[str, Any], bool]
-CUSTOM_FORMATTER_FUNC = Callable[[Any], CUSTOM_FORMATTER_FUNC_RETURN] # Returns a dict of {key: value} pairs and a boolean indicating whether to use getitem syntax (getitem syntax = '[key]=value', non-getitem syntax = '.key=value')
+CUSTOM_FORMATTER_FUNC = Callable[
+    [Any], CUSTOM_FORMATTER_FUNC_RETURN
+]  # Returns a dict of {key: value} pairs and a boolean indicating whether to use getitem syntax (getitem syntax = '[key]=value', non-getitem syntax = '.key=value')
+
 
 class LogfmtFormatter(logging.Formatter):
     """A logfmt formatter for Python's logging module."""
@@ -193,13 +196,15 @@ class LogfmtFormatter(logging.Formatter):
 
     def add_custom_formatter(self, condition: CUSTOM_FORMATTER_PREDICATE, formatter: CUSTOM_FORMATTER_FUNC):
         self.custom_formatters[condition] = formatter
-    
+
     def custom_formatter(self, condition: CUSTOM_FORMATTER_PREDICATE_FUNC):
         """Decorator form of add_custom_formatter"""
+
         def decorator(func: CUSTOM_FORMATTER_FUNC) -> CUSTOM_FORMATTER_FUNC:
             self.add_custom_formatter(condition, func)
             return func
+
         return decorator
-    
+
     def remove_custom_formatter(self, condition: CUSTOM_FORMATTER_PREDICATE):
         del self.custom_formatters[condition]

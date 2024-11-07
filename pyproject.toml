@@ -37,3 +37,9 @@ docstring-code-format = true
 [tool.ruff.lint.isort]
 case-sensitive = false
 combine-as-imports = true
+
+[tool.setuptools]
+packages = ["harp_logfmt"]
+
+[tool.setuptools.package-dir]
+"" = "src"

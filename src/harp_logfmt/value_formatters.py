@@ -25,7 +25,7 @@ def format_namedtuple(value: tuple) -> tuple[dict[str, Any], bool]:
 
 
 default_formatters = {
-    Iterable: format_iterable, # Goes to top because it is the most generic
+    Iterable: format_iterable,  # Goes to top because it is the most generic
     Mapping: format_mapping,
     types.SimpleNamespace: format_namespace,
     (lambda value: dataclasses.is_dataclass(value) and not isinstance(value, type)): format_dataclass,
