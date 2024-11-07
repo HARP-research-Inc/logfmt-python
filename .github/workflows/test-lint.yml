@@ -60,7 +60,7 @@ jobs:
       if: ${{ github.event_name == 'push' }}
       run: |
         VERSION="$(pip show harp-logfmt-python | grep Version | awk '{print $2}')"
-        if [ $(git tag -l "$VERSION") ];
+        if [ ! $(git tag -l "$VERSION") ];
         then
           git tag "$VERSION"
           git push origin "$VERSION"
