@@ -179,7 +179,7 @@ class LogfmtFormatter(logging.Formatter):
         else:
             data["message"] = record.getMessage()
         if (attr := getattr(record, "data", None)) is not None:
-            self._format_value(data, attr, "data")
+            data.update(self._format_value(attr, "data"))
         if self._exclude_keys:
             common_keys = set(data.keys()) & self._exclude_keys
             for key in common_keys:

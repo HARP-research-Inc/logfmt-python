@@ -210,3 +210,54 @@ class TestSimple(TestCase):
         self.assertIn("message[2][imag].fraction=0.5", value)
         self.assertIn("function=test_custom_formatter", value)
         self.assertIn("name=custom_formatter", value)
+
+    def test_msg_and_data_simple(self):
+        formatter = LogfmtFormatter(colorize=False)
+        logger, stream = setup_logger(formatter, name="msg_and_data_simple")
+        logger.debug("Hello, world!", extra={"data": "World, Hello!"})
+        value = stream.getvalue()
+        self.assertIn("level=DEBUG", value)
+        self.assertIn('message="Hello, world!"', value)
+        self.assertIn('data="World, Hello!"', value)
+        self.assertIn("function=test_msg_and_data_simple", value)
+        self.assertIn("name=msg_and_data_simple", value)
+
+    def test_msg_and_data_complex(self):
+        formatter = LogfmtFormatter(colorize=False)
+        logger, stream = setup_logger(formatter, name="msg_and_data_complex")
+        logger.debug("Hello, world!", extra={"data": {"a": 1, "b": 2}})
+        value = stream.getvalue()
+        self.assertIn("level=DEBUG", value)
+        self.assertIn('message="Hello, world!"', value)
+        self.assertIn("data[a]=1", value)
+        self.assertIn("data[b]=2", value)
+        self.assertIn("function=test_msg_and_data_complex", value)
+        self.assertIn("name=msg_and_data_complex", value)
+
+    def test_both_msg_and_data_non_string(self):
+        formatter = LogfmtFormatter(colorize=False)
+        logger, stream = setup_logger(formatter, name="both_msg_and_data_non_string")
+        logger.debug([42], extra={"data": [42]})
+        value = stream.getvalue()
+        self.assertIn("level=DEBUG", value)
+        self.assertIn("message[0]=42", value)
+        self.assertIn("data[0]=42", value)
+        self.assertIn("function=test_both_msg_and_data_non_string", value)
+        self.assertIn("name=both_msg_and_data_non_string", value)
+
+    def test_both_msg_and_data_custom_formatter(self):
+        formatter = LogfmtFormatter(colorize=False)
+        logger, stream = setup_logger(formatter, name="both_msg_and_data_custom_formatter")
+        @formatter.custom_formatter(lambda value: type(value) is complex)
+        def complex_formatter(value: complex) -> CUSTOM_FORMATTER_FUNC_RETURN:
+            return {"real": value.real, "imag": value.imag}, True
+        
+        logger.debug(complex(21, 1), extra={"data": complex(21, 1)})
+        value = stream.getvalue()
+        self.assertIn("level=DEBUG", value)
+        self.assertIn("message[real]=21", value)
+        self.assertIn("message[imag]=1", value)
+        self.assertIn("data[real]=21", value)
+        self.assertIn("data[imag]=1", value)
+        self.assertIn("function=test_both_msg_and_data_custom_formatter", value)
+        self.assertIn("name=both_msg_and_data_custom_formatter", value)
