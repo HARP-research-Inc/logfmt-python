@@ -25,7 +25,6 @@ email = "dev@harpresearch.ai"
 
 [project.optional-dependencies]
 lint = ["ruff==0.6.9"]
-test = ["pytest"]
 
 [tool.ruff]
 line-length = 120

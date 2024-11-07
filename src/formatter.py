@@ -1,10 +1,15 @@
 import logging
 import re
+import sys
 from typing import Any, Callable, Container, Iterable
 import datetime
 from .ansicolors import ANSIColors
 from .value_formatters import default_formatters
 
+CUSTOM_FORMATTER_PREDICATE_FUNC = Callable[[Any], bool]
+CUSTOM_FORMATTER_PREDICATE = type | CUSTOM_FORMATTER_PREDICATE_FUNC
+CUSTOM_FORMATTER_FUNC_RETURN = tuple[dict[str, Any], bool]
+CUSTOM_FORMATTER_FUNC = Callable[[Any], CUSTOM_FORMATTER_FUNC_RETURN] # Returns a dict of {key: value} pairs and a boolean indicating whether to use getitem syntax (getitem syntax = '[key]=value', non-getitem syntax = '.key=value')
 
 class LogfmtFormatter(logging.Formatter):
     """A logfmt formatter for Python's logging module."""
@@ -26,7 +31,7 @@ class LogfmtFormatter(logging.Formatter):
         self.colorize = colorize
         self._msg_regex: re.Pattern | None = re.compile(msg_regex) if isinstance(msg_regex, str) else msg_regex
         self._highlight_keys = set(highlight_keys)
-        self.custom_formatters: dict[type | Callable[[Any], bool], Callable[[Any], tuple[dict[str, Any], bool]]] = {}
+        self.custom_formatters: dict[CUSTOM_FORMATTER_PREDICATE, CUSTOM_FORMATTER_FUNC] = {}
         self.timezone = timezone
         if include_default_formatters:
             self.custom_formatters.update(default_formatters)
@@ -42,15 +47,15 @@ class LogfmtFormatter(logging.Formatter):
     @property
     def msg_regex(self) -> re.Pattern | None:
         return self._msg_regex
-    
+
     @msg_regex.setter
     def msg_regex(self, value: str | re.Pattern | None):
         self._msg_regex = re.compile(value) if isinstance(value, str) else value
-    
+
     @property
     def highlight_keys(self) -> Container[str]:
         return self._highlight_keys
-    
+
     @highlight_keys.setter
     def highlight_keys(self, value: Iterable[str]):
         self._highlight_keys = set(value)
@@ -143,9 +148,10 @@ class LogfmtFormatter(logging.Formatter):
         dt = datetime.datetime.fromtimestamp(record.created, tz=datetime.timezone.utc).astimezone(self.timezone)
         data = {
             "time": dt.isoformat("T"),
-            "taskName": record.taskName,
             "function": record.funcName,
         }
+        if sys.version_info >= (3, 12):
+            data["taskName"] = record.taskName
         data.update(
             {
                 key: (value if isinstance(value, str) and value is not None else str(value))
@@ -154,11 +160,11 @@ class LogfmtFormatter(logging.Formatter):
             }
         )
         data.update(
-            {"name": record.name, "level": self.colorize_level_if_debug(record.levelno), "message": record.getMessage()}
+            {"name": record.name, "level": self.colorize_level_if_debug(record.levelno)}
         )  # We put this last because we always want this to be last
         if not isinstance(record.msg, str):
             msg = record.msg
-            self.format_value(data, msg, "message")
+            data.update(self._format_value(msg, "message"))
         elif self.msg_regex:
             match = self.msg_regex.search(record.getMessage())
             if match:
@@ -167,8 +173,10 @@ class LogfmtFormatter(logging.Formatter):
                     raise ValueError("msg_regex must have at least one named group.")
                 del data["message"]
                 data.update(groups)
+        else:
+            data["message"] = record.getMessage()
         if (attr := getattr(record, "data", None)) is not None:
-            self.format_value(data, attr, "data")
+            self._format_value(data, attr, "data")
         if self._exclude_keys:
             common_keys = set(data.keys()) & self._exclude_keys
             for key in common_keys:
@@ -182,3 +190,16 @@ class LogfmtFormatter(logging.Formatter):
         if record.stack_info:
             base += "\n" + self.formatStack(record.stack_info)
         return base
+
+    def add_custom_formatter(self, condition: CUSTOM_FORMATTER_PREDICATE, formatter: CUSTOM_FORMATTER_FUNC):
+        self.custom_formatters[condition] = formatter
+    
+    def custom_formatter(self, condition: CUSTOM_FORMATTER_PREDICATE_FUNC):
+        """Decorator form of add_custom_formatter"""
+        def decorator(func: CUSTOM_FORMATTER_FUNC) -> CUSTOM_FORMATTER_FUNC:
+            self.add_custom_formatter(condition, func)
+            return func
+        return decorator
+    
+    def remove_custom_formatter(self, condition: CUSTOM_FORMATTER_PREDICATE):
+        del self.custom_formatters[condition]
