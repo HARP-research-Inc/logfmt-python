@@ -7,7 +7,7 @@ from .ansicolors import ANSIColors
 from .value_formatters import default_formatters
 
 CUSTOM_FORMATTER_PREDICATE_FUNC = Callable[[Any], bool]
-CUSTOM_FORMATTER_PREDICATE = type | CUSTOM_FORMATTER_PREDICATE_FUNC
+CUSTOM_FORMATTER_PREDICATE = type | tuple[type, ...] | CUSTOM_FORMATTER_PREDICATE_FUNC
 CUSTOM_FORMATTER_FUNC_RETURN = tuple[dict[str, Any], bool]
 CUSTOM_FORMATTER_FUNC = Callable[
     [Any], CUSTOM_FORMATTER_FUNC_RETURN
@@ -131,7 +131,7 @@ class LogfmtFormatter(logging.Formatter):
         if isinstance(value, str):
             return {prefix: value}
         for formatter_type, formatter in reversed(self.custom_formatters.items()):
-            if isinstance(formatter_type, type):
+            if isinstance(formatter_type, (type, tuple)):
                 is_formatter_type = isinstance(value, formatter_type)
             else:
                 is_formatter_type = formatter_type(value)
