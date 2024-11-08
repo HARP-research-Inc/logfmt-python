@@ -26,6 +26,7 @@ class LogfmtFormatter(logging.Formatter):
         highlight_keys: Iterable[str] = ("message",),
         include_default_formatters: bool = True,
         timezone: datetime.tzinfo = datetime.timezone.utc,
+        discard_none: bool = True,
         **kwargs,
     ):
         kwargs.setdefault("datefmt", "%Y-%m-%dT%H:%M:%S%.%f%z")
@@ -36,6 +37,7 @@ class LogfmtFormatter(logging.Formatter):
         self._highlight_keys = set(highlight_keys)
         self.custom_formatters: dict[CUSTOM_FORMATTER_PREDICATE, CUSTOM_FORMATTER_FUNC] = {}
         self.timezone = timezone
+        self.discard_none = discard_none
         if include_default_formatters:
             self.custom_formatters.update(default_formatters)
 
@@ -130,6 +132,8 @@ class LogfmtFormatter(logging.Formatter):
     def _format_value(self, value: Any, prefix: str) -> dict[str, str]:
         if isinstance(value, str):
             return {prefix: value}
+        elif value is None:
+            return {} if self.discard_none else {prefix: "None"}
         for formatter_type, formatter in reversed(self.custom_formatters.items()):
             if isinstance(formatter_type, (type, tuple)):
                 is_formatter_type = isinstance(value, formatter_type)

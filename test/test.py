@@ -248,10 +248,11 @@ class TestSimple(TestCase):
     def test_both_msg_and_data_custom_formatter(self):
         formatter = LogfmtFormatter(colorize=False)
         logger, stream = setup_logger(formatter, name="both_msg_and_data_custom_formatter")
+
         @formatter.custom_formatter(lambda value: type(value) is complex)
         def complex_formatter(value: complex) -> CUSTOM_FORMATTER_FUNC_RETURN:
             return {"real": value.real, "imag": value.imag}, True
-        
+
         logger.debug(complex(21, 1), extra={"data": complex(21, 1)})
         value = stream.getvalue()
         self.assertIn("level=DEBUG", value)
