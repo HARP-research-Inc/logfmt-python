@@ -197,7 +197,7 @@ class LogfmtFormatter(logging.Formatter):
     def add_custom_formatter(self, condition: CUSTOM_FORMATTER_PREDICATE, formatter: CUSTOM_FORMATTER_FUNC):
         self.custom_formatters[condition] = formatter
 
-    def custom_formatter(self, condition: CUSTOM_FORMATTER_PREDICATE_FUNC):
+    def custom_formatter(self, condition: CUSTOM_FORMATTER_PREDICATE):
         """Decorator form of add_custom_formatter"""
 
         def decorator(func: CUSTOM_FORMATTER_FUNC) -> CUSTOM_FORMATTER_FUNC:
