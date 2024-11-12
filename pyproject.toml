@@ -1,6 +1,6 @@
 [project]
 name = "harp-logfmt-python"
-version = "1.2.0"
+version = "1.2.1"
 description = "Logfmt formatter for python logging"
 dependencies = []
 readme = "README.md"

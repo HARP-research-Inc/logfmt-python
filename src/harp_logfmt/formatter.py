@@ -172,14 +172,11 @@ class LogfmtFormatter(logging.Formatter):
         if not isinstance(record.msg, str):
             msg = record.msg
             data.update(self._format_value(msg, "message"))
-        elif self.msg_regex:
-            match = self.msg_regex.search(record.getMessage())
-            if match:
-                groups = match.groupdict()
-                if not groups:
-                    raise ValueError("msg_regex must have at least one named group.")
-                del data["message"]
-                data.update(groups)
+        elif self.msg_regex and (match := self.msg_regex.search(record.getMessage())):
+            groups = match.groupdict()
+            if not groups:
+                raise ValueError("msg_regex must have at least one named group.")
+            data.update(groups)
         else:
             data["message"] = record.getMessage()
         if (attr := getattr(record, "data", None)) is not None:
@@ -187,9 +184,10 @@ class LogfmtFormatter(logging.Formatter):
         if self._exclude_keys:
             common_keys = set(data.keys()) & self._exclude_keys
             for key in common_keys:
-                del data[key]
+                if key in data:
+                    del data[key]
         for key, value in data.copy().items():
-            if value is None:
+            if value is None and self.discard_none:
                 del data[key]
         base = " ".join([self.kv_to_logfmt(key, value) for key, value in data.items()])
         if record.exc_info:
