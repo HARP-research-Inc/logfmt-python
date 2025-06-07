@@ -25,11 +25,11 @@ def format_namespace(
 
 
 def format_dataclass(value) -> tuple[dict[str, Any], bool]:
-    return {field.name: getattr(value, field.name) for field in dataclasses.fields(value)}, False
+    return {field.name: getattr(value, field.name) for field in dataclasses.fields(value) if field.repr}, False
 
 
 def format_namedtuple(value: tuple) -> tuple[dict[str, Any], bool]:
-    return value._asdict(), False
+    return value._asdict(), False  # type: ignore # There is no namedtuple abstract class, so the way to find it is to check if it's a tuple and has an _asdict method (very rare false positive, since the default tuple class does not have it)
 
 
 default_formatters = {

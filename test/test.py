@@ -1,6 +1,6 @@
 from harp_logfmt import LogfmtFormatter, CUSTOM_FORMATTER_FUNC_RETURN
 from unittest import TestCase
-from dataclasses import dataclass
+from dataclasses import field, dataclass
 from typing import NamedTuple
 from harp_logfmt.ansicolors import ANSIColors
 from uuid import uuid4
@@ -309,3 +309,31 @@ class TestSimple(TestCase):
         self.assertIn("data=Hello,world!", value)
         self.assertIn("function=test_auto_space_quotes", value)
         self.assertIn("name=auto_space_quotes", value)
+
+    def test_extra_non_data(self):
+        formatter = LogfmtFormatter(colorize=False)
+        logger, stream = setup_logger(formatter, name="extra_non_data")
+        logger.debug("Hello, world!", extra={"a": 1, "b": 2, "c": "3"})
+        value = stream.getvalue()
+        self.assertIn("level=DEBUG", value)
+        self.assertIn('message="Hello, world!"', value)
+        self.assertIn("a=1", value)
+        self.assertIn("b=2", value)
+        self.assertIn("c=3", value)
+        self.assertIn("function=test_extra_non_data", value)
+        self.assertIn("name=extra_non_data", value)
+
+    def test_dataclass_with_no_repr(self):
+        @dataclass(frozen=True)
+        class NoReprDataclass:
+            a: int
+            b: int
+            c: int = field(repr=False)
+
+        logger, stream = setup_logger(LogfmtFormatter(colorize=False), name="dataclass_with_no_repr")
+        logger.debug(NoReprDataclass(1, 2, 3))
+        value = stream.getvalue()
+        self.assertIn("level=DEBUG", value)
+        self.assertIn("message.a=1", value)
+        self.assertIn("message.b=2", value)
+        self.assertNotIn("message.c=", value)

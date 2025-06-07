@@ -69,7 +69,7 @@ class LogfmtFormatter(logging.Formatter):
     def msg_regex(self, value: str | re.Pattern | None):
         self._msg_regex = re.compile(value) if isinstance(value, str) else value
 
-    def kv_to_logfmt(self, key: str, value: str) -> str:
+    def kv_to_logfmt(self, key: str, value: Any) -> str:
         realkey = f"{ANSIColors.BOLD.BLACK}{key}={ANSIColors.RESET}" if self.colorize else (key + "=")
         realvalue = (
             f"{ANSIColors.REGULAR.BLACK}{value}{ANSIColors.RESET}"
@@ -153,7 +153,7 @@ class LogfmtFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         dt = datetime.datetime.fromtimestamp(record.created, tz=datetime.timezone.utc).astimezone(self.timezone)
-        data = {
+        data: dict[str, str | None] = {
             "time": dt.isoformat("T"),
             "function": record.funcName,
         }
