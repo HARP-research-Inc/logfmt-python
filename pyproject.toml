@@ -24,7 +24,7 @@ name = "HARP Research"
 email = "dev@harpresearch.ai"
 
 [project.optional-dependencies]
-lint = ["ruff==0.12.9"]
+lint = ["ruff==0.14.7"]
 
 [tool.ruff]
 line-length = 120
